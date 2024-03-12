@@ -4,6 +4,17 @@
 
 #include "queue.h"
 
+
+void quick_sort(struct list_head *left_edge,
+                struct list_head *right_edge,
+                bool descend);
+
+char *value_of(struct list_head *target);
+
+int comparison(struct list_head *lh1, struct list_head *lh2, bool descend);
+
+void swap(struct list_head *lh1, struct list_head *lh2);
+
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -139,7 +150,63 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head)
+        return;
+    quick_sort(head->next, head->prev, descend);
+}
+
+void quick_sort(struct list_head *left_edge,
+                struct list_head *right_edge,
+                bool descend)
+{
+    if (left_edge == right_edge)
+        return;
+    struct list_head *key = left_edge;
+    struct list_head *left = left_edge->next;
+    struct list_head *right = right_edge;
+    while (1) {
+        while (left != right->next) {
+            if (comparison(key, left, descend) < 0)
+                break;
+            left = left->next;
+        }
+        while (left != right->next) {
+            if (comparison(key, right, descend) > 0)
+                break;
+            right = right->prev;
+        }
+        if (left == right->next)
+            break;
+        swap(left, right);
+    }
+    swap(key, right);
+    if (right != left_edge)
+        quick_sort(left_edge, right->prev, descend);
+    if (right != right_edge)
+        quick_sort(right->next, right_edge, descend);
+}
+
+char *value_of(struct list_head *target)
+{
+    return list_entry(target, element_t, list)->value;
+}
+
+int comparison(struct list_head *lh1, struct list_head *lh2, bool descend)
+{
+    int cmp = strcmp(value_of(lh1), value_of(lh2));
+    return descend ? -cmp : cmp;
+}
+
+void swap(struct list_head *lh1, struct list_head *lh2)
+{
+    element_t *e1 = list_entry(lh1, element_t, list);
+    element_t *e2 = list_entry(lh2, element_t, list);
+    char *temp = e1->value;
+    e1->value = e2->value;
+    e2->value = temp;
+}
 
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
