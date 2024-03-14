@@ -19,6 +19,8 @@ struct list_head *merge(struct list_head *left,
                         struct list_head *right,
                         bool descend);
 
+void delete_node(struct list_head *node);
+
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -124,17 +126,38 @@ bool q_delete_mid(struct list_head *head)
          fast != head && fast->next != head; fast = fast->next->next) {
         indir = &(*indir)->next;
     }
-    element_t *e = list_entry(*indir, element_t, list);
-    list_del(*indir);
+    delete_node(*indir);
+    return true;
+}
+
+void delete_node(struct list_head *node)
+{
+    element_t *e = list_entry(node, element_t, list);
+    list_del(node);
     free(e->value);
     free(e);
-    return true;
 }
 
 /* Delete all nodes that have duplicate string */
 bool q_delete_dup(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    if (!head)
+        return false;
+    struct list_head *cur = head->next;
+    while (cur != head) {
+        bool has_deleted = false;
+        struct list_head *next = cur->next;
+        while (next != head && comparison(cur, next, false) == 0) {
+            has_deleted = true;
+            cur = next;
+            next = next->next;
+            delete_node(cur->prev);
+        }
+        cur = next;
+        if (has_deleted) {
+            delete_node(cur->prev);
+        }
+    }
     return true;
 }
 
