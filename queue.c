@@ -15,6 +15,10 @@ int comparison(struct list_head *lh1, struct list_head *lh2, bool descend);
 
 void swap(struct list_head *lh1, struct list_head *lh2);
 
+struct list_head *merge(struct list_head *left,
+                        struct list_head *right,
+                        bool descend);
+
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -257,6 +261,46 @@ int q_descend(struct list_head *head)
  * order */
 int q_merge(struct list_head *head, bool descend)
 {
-    // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (head->next == head)
+        return 0;
+    queue_contex_t *entry, *safe;
+    struct list_head *target = NULL;
+    list_for_each_entry_safe (entry, safe, head, chain) {
+        target = merge(target, entry->q, descend);
+    }
+    return q_size(target);
+}
+
+struct list_head *merge(struct list_head *left,
+                        struct list_head *right,
+                        bool descend)
+{
+    if (left == NULL)
+        return right;
+    struct list_head *left_head = left;
+    left = left->next;
+    struct list_head *right_head = right;
+    right = right->next;
+    struct list_head *cur = left_head;
+    while (left != left_head && right != right_head) {
+        if (comparison(left, right, descend) < 0) {
+            left = left->next;
+        } else {
+            right = right->next;
+            left->prev = right->prev;
+            cur->next = right->prev;
+            right->prev->next = left;
+            right->prev->prev = cur;
+        }
+        cur = cur->next;
+    }
+    if (right != right_head) {
+        cur->next = right;
+        right->prev = cur;
+        left_head->prev = right_head->prev;
+        right_head->prev->next = left_head;
+    }
+    right_head->prev = right_head;
+    right_head->next = right_head;
+    return left_head;
 }
