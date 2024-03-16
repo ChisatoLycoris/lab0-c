@@ -291,16 +291,24 @@ void swap(struct list_head *lh1, struct list_head *lh2)
  * the right side of it */
 int q_ascend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    for (struct list_head *cur = head->prev; cur != head; cur = cur->prev) {
+        while (cur->prev != head && comparison(cur, cur->prev, false) < 0) {
+            delete_node(cur->prev);
+        }
+    }
+    return q_size(head);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    for (struct list_head *cur = head->prev; cur != head; cur = cur->prev) {
+        while (cur->prev != head && comparison(cur, cur->prev, false) > 0) {
+            delete_node(cur->prev);
+        }
+    }
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
